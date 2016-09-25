@@ -72,9 +72,12 @@ class AndroidLibrary(object):
 
     def print_symbol_sizes(self):
         self.symbols.sort(key=lambda value: value[1], reverse=True)
-        demangled_symbols = zip(demangle([symbol for symbol, _ in self.symbols[:100]]), [size for _, size in self.symbols[:100]])
+        demangled_symbols = zip(demangle([symbol for symbol, _ in self.symbols[:100]]), [size for _, size in self.symbols[:200]])
+        max_digits = len(str(self.symbols[0][1]))
+        fmt_string = "- {: <" + str(max_digits) + "} : {}"
+
         for symbol, size in demangled_symbols:
-            print("- {} : {}".format(symbol, size))
+            print(fmt_string.format(size, symbol))
 
     def parse_file(self, filename):
         with open(filename, 'rb') as file:
