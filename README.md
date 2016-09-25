@@ -13,6 +13,8 @@ ndk-size-analyzer --symbols 100 android_project/.externalNativeBuild/cmake/debug
 
 Screenshot:
 
+![Screenshot](https://raw.githubusercontent.com/izacus/android-ndk-size-analyzer/master/doc/screenshot.png)
+
 License:
 
 ```
