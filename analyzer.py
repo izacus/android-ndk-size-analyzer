@@ -1,4 +1,6 @@
 #! /usr/bin/env python3
+
+import click
 import subprocess
 import sys
 from enum import Enum
@@ -47,6 +49,7 @@ class AndroidLibrary(object):
     symbols = []
 
     def __init__(self, filename):
+        click.echo(click.style("Processing ", fg='green') + click.style(filename, fg='yellow'))
         self.parse_file(filename)
 
     def machine_description(self, elf_file):
@@ -74,7 +77,8 @@ class AndroidLibrary(object):
         self.symbols.sort(key=lambda value: value[1], reverse=True)
         demangled_symbols = zip(demangle([symbol for symbol, _ in self.symbols[:100]]), [size for _, size in self.symbols[:200]])
         max_digits = len(str(self.symbols[0][1]))
-        fmt_string = "- {: <" + str(max_digits) + "} : {}"
+        fmt_string = click.style("** ", fg="green") + click.style("{: <" + str(max_digits) + "}", fg="yellow") + \
+                     click.style(" : ", fg="green") + "{}"
 
         for symbol, size in demangled_symbols:
             print(fmt_string.format(size, symbol))
@@ -84,12 +88,13 @@ class AndroidLibrary(object):
             elf_file = ELFFile(file)
             # Identify architecture and bitness
             self.architecture = self.machine_description(elf_file)
-            print("Architecture: {}".format(self.architecture))
+            click.echo(click.style("Architecture: ", fg='green') + click.style(str(self.architecture), fg='yellow') + "\n")
 
             for sect in elf_file.iter_sections():
                 if isinstance(sect, SymbolTableSection):
-                    for symbol in sect.iter_symbols():
-                        self.process_symbol(symbol)
+                    with click.progressbar(sect.iter_symbols(), length=sect.num_symbols(), label="Processing {}".format(sect.name)) as symbols:
+                        for symbol in symbols:
+                            self.process_symbol(symbol)
                 elif isinstance(sect, StringTableSection):
                     # Ignore debug string sections
                     if sect.name == ".strtab":
@@ -98,16 +103,25 @@ class AndroidLibrary(object):
                 elif sect.name == ".rodata":
                     self.total_constants += sect.header.sh_size
 
-            print("=====")
+            click.secho("Done!\n", fg="green")
+            click.secho("Symbol sizes:", fg="green")
+            click.secho("=============", fg="green")
             self.print_symbol_sizes()
-            print("=====")
-            print("Total size of symbols: {} / [{}]".format(sizeof_fmt(self.total_size), len(self.symbols)))
-            print("Total size of strings: {}".format(sizeof_fmt(self.total_strings)))
-            print("Total size of constants: {}".format(sizeof_fmt(self.total_constants)))
-            print("=====")
-            print("Filesize: {}".format(sizeof_fmt(self.total_size + self.total_strings + self.total_constants)))
-
+            click.echo("\n")
+            click.secho("=============", fg="green")
+            click.echo(click.style("Total size of symbols: ", fg="green") + click.style(sizeof_fmt(self.total_size), fg="yellow"))
+            click.echo(click.style("Total size of strings: ", fg="green") + click.style(sizeof_fmt(self.total_strings), fg="yellow"))
+            click.echo(click.style("Total size of constants: ", fg="green") + click.style(sizeof_fmt(self.total_constants), fg="yellow"))
+            click.secho("=============", fg="green")
+            click.echo(click.style("Filesize: ", fg="green") + click.style(sizeof_fmt(self.total_size + self.total_strings + self.total_constants), fg="yellow"))
+            click.secho("=============", fg="green")
 
 if __name__ == "__main__":
+    click.secho("\nNDK library size analyzer, v1.0", fg="green")
     filename = sys.argv[1]
-    AndroidLibrary(filename)
+
+    try:
+        AndroidLibrary(filename)
+    except KeyboardInterrupt as e:
+        click.secho("Cancelled!", fg="red")
+        sys.exit(-1)
