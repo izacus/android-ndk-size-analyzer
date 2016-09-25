@@ -1,5 +1,9 @@
 #! /usr/bin/env python3
 
+from pygments import highlight
+from pygments.lexers.c_cpp import CppLexer
+from pygments.formatters.terminal256 import Terminal256Formatter
+
 import click
 import subprocess
 import sys
@@ -80,8 +84,11 @@ class AndroidLibrary(object):
         fmt_string = click.style("** ", fg="green") + click.style("{: <" + str(max_digits) + "}", fg="yellow") + \
                      click.style(" : ", fg="green") + "{}"
 
+
+        lexer = CppLexer()
+        formatter = Terminal256Formatter()
         for symbol, size in demangled_symbols:
-            print(fmt_string.format(size, symbol))
+            print(fmt_string.format(size, highlight(symbol, lexer, formatter).rstrip()))
 
     def parse_file(self, filename):
         with open(filename, 'rb') as file:
