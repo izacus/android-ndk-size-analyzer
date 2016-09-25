@@ -1,17 +1,19 @@
 #! /usr/bin/env python3
 
-from pygments import highlight
-from pygments.lexers.c_cpp import CppLexer
-from pygments.formatters.terminal256 import Terminal256Formatter
-
 import click
 import subprocess
 import sys
+
 from enum import Enum
 
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection, StringTableSection
 
+from pygments import highlight
+from pygments.lexers.c_cpp import CppLexer
+from pygments.formatters.terminal256 import Terminal256Formatter
+
+from version import VERSION
 
 class Architecture(Enum):
     ARM_32 = 1
@@ -118,7 +120,7 @@ class AndroidLibrary(object):
         lexer = CppLexer()
         formatter = Terminal256Formatter()
         for symbol, size in demangled_symbols:
-            print(fmt_string.format(size, highlight(symbol, lexer, formatter).rstrip()))
+            print(fmt_string.format(sizeof_fmt(size), highlight(symbol, lexer, formatter).rstrip()))
 
     def print_statistics(self):
         click.secho("Symbol sizes:", fg="green")
@@ -133,8 +135,8 @@ class AndroidLibrary(object):
         click.echo(click.style("Total size of constants: ", fg="green") + click.style(sizeof_fmt(self.total_constants),
                                                                                       fg="yellow"))
         click.secho("=============", fg="green")
-        click.echo(click.style("Filesize: ", fg="green") + click.style(
-            sizeof_fmt(self.total_size + self.total_strings + self.total_constants), fg="yellow"))
+        click.echo(click.style("Filesize: ", fg="green") +
+                   click.style(sizeof_fmt(self.total_size + self.total_strings + self.total_constants), fg="yellow"))
         click.secho("=============", fg="green")
 
     def _parse_file(self, filename, symbol_count):
@@ -171,7 +173,7 @@ class AndroidLibrary(object):
 @click.argument("filename", nargs=1)
 @click.option("--symbols", default=200, help="Number of symbols to list.")
 def process(filename, symbols):
-    click.secho("\nNDK library size analyzer, v1.0", fg="green")
+    click.secho("\nNDK library size ndk_size_analyzer, v{}".format(VERSION), fg="green")
     try:
         library = AndroidLibrary(filename, symbols)
         library.print_statistics()
