@@ -173,7 +173,7 @@ class AndroidLibrary(object):
 @click.argument("filename", nargs=1)
 @click.option("--symbols", default=200, help="Number of symbols to list.")
 def process(filename, symbols):
-    click.secho("\nNDK library size ndk_size_analyzer, v{}".format(VERSION), fg="green")
+    click.secho("\nNDK library size analyzer, v{}".format(VERSION), fg="green")
     try:
         library = AndroidLibrary(filename, symbols)
         library.print_statistics()
