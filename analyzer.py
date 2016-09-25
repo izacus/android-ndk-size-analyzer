@@ -20,6 +20,9 @@ class Architecture(Enum):
     X86_64 = 4
     UNKNOWN = 99
 
+# Remember if we showed the warning that c++filt isn't available.
+demangle_warning_shown = False
+
 
 def demangle(names):
     """
@@ -38,6 +41,10 @@ def demangle(names):
         assert len(demangled) == len(names)+1
         return demangled[:-1]
     except OSError:
+        global demangle_warning_shown
+        if not demangle_warning_shown:
+            click.secho("\n == Couldn't find c++filt tool in path, won't demangle C++ symbols! ==\n", fg="red")
+            demangle_warning_shown = True
         return names
 
 
