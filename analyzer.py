@@ -12,7 +12,6 @@ from enum import Enum
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection, StringTableSection
 
-SHOW_TOP_SYMBOL_COUNT = 150
 
 class Architecture(Enum):
     ARM_32 = 1
@@ -63,9 +62,9 @@ class AndroidLibrary(object):
     # This is list of just top symbols
     top_symbols = []
 
-    def __init__(self, filename):
+    def __init__(self, filename, symbol_count):
         click.echo(click.style("Processing ", fg='green') + click.style(filename, fg='yellow'))
-        self._parse_file(filename)
+        self._parse_file(filename, symbol_count)
         click.secho("Done!\n", fg="green")
 
     @staticmethod
@@ -131,7 +130,7 @@ class AndroidLibrary(object):
             sizeof_fmt(self.total_size + self.total_strings + self.total_constants), fg="yellow"))
         click.secho("=============", fg="green")
 
-    def _parse_file(self, filename):
+    def _parse_file(self, filename, symbol_count):
         """
         Parses the .so library file and determines sizes of all the symbols.
         """
@@ -158,15 +157,21 @@ class AndroidLibrary(object):
                     self.total_constants += sect.header.sh_size
 
         symbols.sort(key=lambda value: value[1], reverse=True)
-        self.top_symbols = symbols[:SHOW_TOP_SYMBOL_COUNT]
+        self.top_symbols = symbols[:symbol_count]
 
-if __name__ == "__main__":
+
+@click.command()
+@click.argument("filename", nargs=1)
+@click.option("--symbols", default=200, help="Number of symbols to list.")
+def process(filename, symbols):
     click.secho("\nNDK library size analyzer, v1.0", fg="green")
-    filename = sys.argv[1]
-
     try:
-        library = AndroidLibrary(filename)
+        library = AndroidLibrary(filename, symbols)
         library.print_statistics()
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         click.secho("Cancelled!", fg="red")
         sys.exit(-1)
+
+
+if __name__ == "__main__":
+    process()
