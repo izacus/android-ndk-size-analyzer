@@ -12,10 +12,12 @@ ndk-size-analyzer --symbols 100 android_project/.externalNativeBuild/cmake/debug
 **NOTE**: You must analyze a **non-stripped debug** version of the library to get proper results. The analyzer won't count sizes of debug symbols.
 
 Screenshot:
+---------------------------
 
 ![Screenshot](https://raw.githubusercontent.com/izacus/android-ndk-size-analyzer/master/doc/screenshot.png)
 
 License:
+---------------------------
 
 ```
 Copyright 2013 Jernej Virag.
